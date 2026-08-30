@@ -1,0 +1,3802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>PAC-MAN</title>
+
+<style>
+
+/* =========================================================
+   FONTS
+========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    user-select:none;
+}
+
+
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#000;
+    font-family:'Press Start 2P',monospace;
+}
+
+
+/* =========================================================
+   LOADING SCREEN
+   BASED DIRECTLY ON THE SCREENSHOT
+========================================================= */
+
+#loadingScreen{
+
+    position:fixed;
+
+    inset:0;
+
+    background:#000;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    z-index:99999;
+
+    opacity:1;
+
+    transition:opacity .55s ease;
+
+}
+
+
+.loadingContent{
+
+    width:100%;
+
+    max-width:420px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+
+/* =========================================================
+   PAC-MAN LOADING TITLE
+========================================================= */
+
+.loadingTitle{
+
+    position:relative;
+
+    font-family:'Press Start 2P',monospace;
+
+    font-size:34px;
+
+    line-height:1;
+
+    letter-spacing:0;
+
+    color:#ffe500;
+
+    text-align:center;
+
+    margin-bottom:24px;
+
+    /*
+       Same yellow/pink offset appearance
+       as the supplied reference.
+    */
+
+    text-shadow:
+
+        4px 0 0 #ff0099,
+
+        -2px 0 0 #ff0099,
+
+        0 0 5px #ffe500,
+
+        0 0 13px rgba(255,230,0,.65);
+
+    filter:
+
+        drop-shadow(
+            0 0 4px
+            rgba(255,230,0,.7)
+        );
+
+    animation:titleFlicker 3s infinite;
+
+}
+
+
+@keyframes titleFlicker{
+
+    0%{
+        opacity:1;
+    }
+
+    3%{
+        opacity:.92;
+    }
+
+    4%{
+        opacity:1;
+    }
+
+    48%{
+        opacity:1;
+    }
+
+    49%{
+        opacity:.82;
+    }
+
+    50%{
+        opacity:1;
+    }
+
+    100%{
+        opacity:1;
+    }
+
+}
+
+
+/* =========================================================
+   LOADING TEXT
+========================================================= */
+
+.loadingText{
+
+    font-family:'Press Start 2P',monospace;
+
+    font-size:7px;
+
+    color:#00ffff;
+
+    text-shadow:
+        0 0 5px #00ffff;
+
+    margin-bottom:10px;
+
+    line-height:1;
+
+}
+
+
+/* =========================================================
+   LOADING BAR
+========================================================= */
+
+.loadingBar{
+
+    width:218px;
+
+    height:11px;
+
+    border:1px solid #fff;
+
+    background:#050505;
+
+    padding:1px;
+
+}
+
+
+.loadingProgress{
+
+    height:100%;
+
+    width:0%;
+
+    background:#ff20d9;
+
+    box-shadow:
+        0 0 6px #ff20d9;
+
+    animation:
+        loadingProgress
+        2.4s
+        linear
+        forwards;
+
+}
+
+
+@keyframes loadingProgress{
+
+    0%{
+        width:0%;
+    }
+
+    15%{
+        width:8%;
+    }
+
+    30%{
+        width:25%;
+    }
+
+    50%{
+        width:49%;
+    }
+
+    70%{
+        width:67%;
+    }
+
+    85%{
+        width:82%;
+    }
+
+    100%{
+        width:100%;
+    }
+
+}
+
+
+/* =========================================================
+   MAIN MENU
+========================================================= */
+
+#menu{
+
+    position:fixed;
+
+    inset:0;
+
+    background:#000;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    z-index:10;
+
+}
+
+
+.menuContent{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    text-align:center;
+
+}
+
+
+.menuLogo{
+
+    font-family:'Press Start 2P',monospace;
+
+    font-size:clamp(35px,8vw,65px);
+
+    color:#ffe500;
+
+    text-shadow:
+
+        4px 4px 0 #e60000,
+
+        0 0 15px rgba(255,230,0,.5);
+
+    margin-bottom:55px;
+
+}
+
+
+.playButton{
+
+    font-family:'Press Start 2P',monospace;
+
+    font-size:13px;
+
+    color:#fff;
+
+    background:#000;
+
+    border:3px solid #fff;
+
+    padding:18px 32px;
+
+    cursor:pointer;
+
+    transition:
+
+        color .15s,
+
+        border-color .15s,
+
+        transform .15s;
+
+}
+
+
+.playButton:hover{
+
+    color:#ffe500;
+
+    border-color:#ffe500;
+
+    transform:scale(1.06);
+
+}
+
+
+.menuControls{
+
+    margin-top:30px;
+
+    font-size:7px;
+
+    color:#555;
+
+}
+
+
+/* =========================================================
+   GAME
+========================================================= */
+
+#gameContainer{
+
+    position:fixed;
+
+    inset:0;
+
+    display:none;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:#000;
+
+}
+
+
+body.gameStarted #menu{
+    display:none;
+}
+
+
+body.gameStarted #gameContainer{
+    display:flex;
+}
+
+
+canvas{
+
+    background:#000;
+
+    image-rendering:pixelated;
+
+    image-rendering:crisp-edges;
+
+    max-width:96vw;
+
+    max-height:96vh;
+
+}
+
+
+/* =========================================================
+   CRT EFFECT
+========================================================= */
+
+.crt{
+
+    position:absolute;
+
+    inset:0;
+
+    pointer-events:none;
+
+    background:
+
+        repeating-linear-gradient(
+
+            to bottom,
+
+            rgba(255,255,255,.025) 0px,
+
+            rgba(255,255,255,.025) 1px,
+
+            rgba(0,0,0,.07) 2px,
+
+            rgba(0,0,0,.07) 4px
+
+        );
+
+    box-shadow:
+
+        inset 0 0 80px rgba(0,0,0,.8);
+
+    z-index:5;
+
+}
+
+
+/* =========================================================
+   PAUSE BUTTON
+========================================================= */
+
+#pauseButton{
+
+    position:absolute;
+
+    top:12px;
+
+    right:12px;
+
+    z-index:20;
+
+    background:#000;
+
+    color:#fff;
+
+    border:1px solid #777;
+
+    padding:8px 10px;
+
+    font-family:'Press Start 2P',monospace;
+
+    font-size:8px;
+
+    cursor:pointer;
+
+}
+
+
+#pauseButton:hover{
+
+    border-color:#ffe500;
+
+    color:#ffe500;
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:500px){
+
+    .loadingTitle{
+        font-size:25px;
+    }
+
+    .loadingText{
+        font-size:6px;
+    }
+
+    .loadingBar{
+        width:218px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =======================================================
+     LOADING SCREEN
+======================================================= -->
+
+<div id="loadingScreen">
+
+    <div class="loadingContent">
+
+        <div class="loadingTitle">
+            PAC-MAN
+        </div>
+
+        <div class="loadingText">
+            LOADING ARCADE...
+        </div>
+
+        <div class="loadingBar">
+
+            <div
+                class="loadingProgress"
+                id="loadingProgress">
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =======================================================
+     MAIN MENU
+======================================================= -->
+
+<div id="menu">
+
+    <div class="menuContent">
+
+        <div class="menuLogo">
+            PAC-MAN
+        </div>
+
+        <button
+            class="playButton"
+            id="playButton">
+
+            PLAY
+
+        </button>
+
+        <div class="menuControls">
+
+            ARROWS / WASD TO MOVE
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =======================================================
+     GAME
+======================================================= -->
+
+<div id="gameContainer">
+
+    <canvas
+        id="game"
+        width="672"
+        height="736">
+    </canvas>
+
+    <button
+        id="pauseButton">
+
+        II
+
+    </button>
+
+    <div class="crt"></div>
+
+</div>
+
+
+
+<script>
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+const canvas =
+    document.getElementById("game");
+
+const ctx =
+    canvas.getContext("2d");
+
+ctx.imageSmoothingEnabled=false;
+
+
+/* =========================================================
+   CONSTANTS
+========================================================= */
+
+const TILE=32;
+
+const COLS=21;
+
+const ROWS=21;
+
+const HUD=2;
+
+
+/* =========================================================
+   GAME STATE
+========================================================= */
+
+let gameState="menu";
+
+let score=0;
+
+let highScore=
+    Number(
+        localStorage.getItem(
+            "pacmanHighScore"
+        )
+    ) || 0;
+
+let lives=3;
+
+let level=1;
+
+let pelletsRemaining=0;
+
+let player=null;
+
+let ghosts=[];
+
+let powerMode=0;
+
+let ghostCombo=0;
+
+let deathTimer=0;
+
+let gameOverTimer=0;
+
+let levelClearTimer=0;
+
+let lastTime=0;
+
+let powerSpawnTimer=7000;
+
+let fruit=null;
+
+let fruitTimer=0;
+
+let activePowerups=[];
+
+
+/* =========================================================
+   MAP
+========================================================= */
+
+const MAP=[
+
+"#####################",
+"#o........#........o#",
+"#.###.###.#.###.###.#",
+"#...................#",
+"#.###.#.#######.#.###",
+"#.....#....#....#...#",
+"#####.####.#.####.###",
+"    #.#         #.#  ",
+"#####.# ### ### #.###",
+"     .  #GGGGG#  .   ",
+"#####.# ######### #  ",
+"    #.#     #     #  ",
+"#####.#.###.#.###.#  ",
+"#...........P........#",
+"#.###.###.#.###.###.#",
+"#o..#.....#.....#..o#",
+"###.#.#.#######.#.###",
+"#.....#....#....#...#",
+"#.########.#.########",
+"#...................#",
+"#####################"
+
+];
+
+
+let map=[];
+
+
+/* =========================================================
+   DIRECTIONS
+========================================================= */
+
+const DIR={
+
+    LEFT:{
+        x:-1,
+        y:0
+    },
+
+    RIGHT:{
+        x:1,
+        y:0
+    },
+
+    UP:{
+        x:0,
+        y:-1
+    },
+
+    DOWN:{
+        x:0,
+        y:1
+    }
+
+};
+
+
+const ALL_DIRS=[
+
+    DIR.LEFT,
+    DIR.RIGHT,
+    DIR.UP,
+    DIR.DOWN
+
+];
+
+
+/* =========================================================
+   RESET MAP
+========================================================= */
+
+function resetMap(){
+
+    map =
+        MAP.map(
+            row=>row.split("")
+        );
+
+    pelletsRemaining=0;
+
+    for(let y=0;y<ROWS;y++){
+
+        for(let x=0;x<COLS;x++){
+
+            if(
+                map[y][x]==="." ||
+                map[y][x]==="o"
+            ){
+
+                pelletsRemaining++;
+
+            }
+
+            if(
+                map[y][x]==="P" ||
+                map[y][x]==="G"
+            ){
+
+                map[y][x]=" ";
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+function makePlayer(){
+
+    return{
+
+        x:10,
+
+        y:13,
+
+        dir:DIR.LEFT,
+
+        nextDir:DIR.LEFT,
+
+        moveTimer:0,
+
+        mouth:0,
+
+        alive:true,
+
+        invincible:0
+
+    };
+
+}
+
+
+/* =========================================================
+   GHOSTS
+========================================================= */
+
+function makeGhosts(){
+
+    const colors=[
+
+        "#ff2020",
+        "#ff82d4",
+        "#00eaff",
+        "#ff9c32"
+
+    ];
+
+
+    const positions=[
+
+        {x:9,y:9},
+        {x:10,y:9},
+        {x:11,y:9},
+        {x:12,y:9}
+
+    ];
+
+
+    ghosts =
+        positions.map(
+            (p,i)=>({
+
+                x:p.x,
+
+                y:p.y,
+
+                homeX:p.x,
+
+                homeY:p.y,
+
+                dir:
+                    i%2===0
+                    ?DIR.LEFT
+                    :DIR.RIGHT,
+
+                moveTimer:0,
+
+                color:colors[i],
+
+                frightened:false,
+
+                eaten:false,
+
+                release:
+                    i===0
+                    ?0
+                    :1200+i*900,
+
+                personality:i
+
+            })
+        );
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+function startGame(){
+
+    score=0;
+
+    lives=3;
+
+    level=1;
+
+    powerMode=0;
+
+    ghostCombo=0;
+
+    activePowerups=[];
+
+    fruit=null;
+
+    powerSpawnTimer=7000;
+
+    resetMap();
+
+    player=makePlayer();
+
+    makeGhosts();
+
+    gameState="playing";
+
+    document.body.classList.add(
+        "gameStarted"
+    );
+
+    startGameSound();
+
+}
+
+
+/* =========================================================
+   PLAY BUTTON
+========================================================= */
+
+document
+    .getElementById("playButton")
+    .addEventListener(
+        "click",
+        startGame
+    );
+
+
+/* =========================================================
+   PAUSE
+========================================================= */
+
+function togglePause(){
+
+    if(gameState==="playing"){
+
+        gameState="paused";
+
+        simpleBeep(
+            220,
+            .1,
+            .04
+        );
+
+    }
+
+    else if(gameState==="paused"){
+
+        gameState="playing";
+
+    }
+
+}
+
+
+document
+    .getElementById("pauseButton")
+    .addEventListener(
+        "click",
+        togglePause
+    );
+
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function(e){
+
+        const key=
+            e.key.toLowerCase();
+
+
+        if(
+            [
+                "arrowup",
+                "arrowdown",
+                "arrowleft",
+                "arrowright",
+                " "
+            ].includes(key)
+        ){
+
+            e.preventDefault();
+
+        }
+
+
+        if(
+            key==="p"
+        ){
+
+            togglePause();
+
+            return;
+
+        }
+
+
+        if(
+            gameState==="gameover" &&
+            key===" "
+        ){
+
+            startGame();
+
+            return;
+
+        }
+
+
+        if(!player)
+            return;
+
+
+        if(
+            key==="arrowleft" ||
+            key==="a"
+        ){
+
+            player.nextDir=DIR.LEFT;
+
+        }
+
+
+        if(
+            key==="arrowright" ||
+            key==="d"
+        ){
+
+            player.nextDir=DIR.RIGHT;
+
+        }
+
+
+        if(
+            key==="arrowup" ||
+            key==="w"
+        ){
+
+            player.nextDir=DIR.UP;
+
+        }
+
+
+        if(
+            key==="arrowdown" ||
+            key==="s"
+        ){
+
+            player.nextDir=DIR.DOWN;
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   TOUCH SWIPE
+========================================================= */
+
+let touchStartX=0;
+
+let touchStartY=0;
+
+
+canvas.addEventListener(
+    "touchstart",
+    e=>{
+
+        const touch=
+            e.touches[0];
+
+        touchStartX=
+            touch.clientX;
+
+        touchStartY=
+            touch.clientY;
+
+    },
+    {passive:true}
+);
+
+
+canvas.addEventListener(
+    "touchend",
+    e=>{
+
+        if(!player)
+            return;
+
+
+        const touch=
+            e.changedTouches[0];
+
+
+        const dx=
+            touch.clientX-
+            touchStartX;
+
+        const dy=
+            touch.clientY-
+            touchStartY;
+
+
+        if(
+            Math.abs(dx)>
+            Math.abs(dy)
+        ){
+
+            if(dx>20)
+                player.nextDir=DIR.RIGHT;
+
+            else if(dx<-20)
+                player.nextDir=DIR.LEFT;
+
+        }
+
+        else{
+
+            if(dy>20)
+                player.nextDir=DIR.DOWN;
+
+            else if(dy<-20)
+                player.nextDir=DIR.UP;
+
+        }
+
+    },
+    {passive:true}
+);
+
+
+/* =========================================================
+   WALL CHECK
+========================================================= */
+
+function wall(x,y){
+
+    if(y<0 || y>=ROWS)
+        return true;
+
+
+    x=
+        (x+COLS)%COLS;
+
+
+    return map[y][x]==="#";
+
+}
+
+
+function canMove(x,y,dir){
+
+    return !wall(
+        x+dir.x,
+        y+dir.y
+    );
+
+}
+
+
+/* =========================================================
+   PLAYER SPEED
+========================================================= */
+
+function playerSpeed(){
+
+    const speedBoost=
+        activePowerups.some(
+            p=>
+                p.type==="speed" &&
+                p.collected
+        );
+
+
+    return speedBoost
+        ?75
+        :125;
+
+}
+
+
+/* =========================================================
+   SCORE MULTIPLIER
+========================================================= */
+
+function multiplier(){
+
+    return activePowerups.some(
+        p=>
+            p.type==="double" &&
+            p.collected
+    )
+    ?2
+    :1;
+
+}
+
+
+/* =========================================================
+   PLAYER UPDATE
+========================================================= */
+
+function updatePlayer(dt){
+
+    if(
+        !player ||
+        !player.alive
+    )
+        return;
+
+
+    if(player.invincible>0)
+        player.invincible-=dt;
+
+
+    player.moveTimer+=dt;
+
+
+    if(
+        player.moveTimer<
+        playerSpeed()
+    )
+        return;
+
+
+    player.moveTimer=0;
+
+
+    if(
+        canMove(
+            player.x,
+            player.y,
+            player.nextDir
+        )
+    ){
+
+        player.dir=
+            player.nextDir;
+
+    }
+
+
+    if(
+        canMove(
+            player.x,
+            player.y,
+            player.dir
+        )
+    ){
+
+        player.x+=
+            player.dir.x;
+
+        player.y+=
+            player.dir.y;
+
+
+        if(player.x<0)
+            player.x=COLS-1;
+
+        if(player.x>=COLS)
+            player.x=0;
+
+
+        eatCurrentTile();
+
+    }
+
+
+    player.mouth+=.35;
+
+}
+
+
+/* =========================================================
+   EATING
+========================================================= */
+
+let wakaToggle=false;
+
+
+function eatCurrentTile(){
+
+    const tile=
+        map[player.y][player.x];
+
+
+    if(tile==="."){
+
+        map[player.y][player.x]=" ";
+
+        pelletsRemaining--;
+
+        score+=
+            10*
+            multiplier();
+
+        waka();
+
+    }
+
+
+    else if(tile==="o"){
+
+        map[player.y][player.x]=" ";
+
+        pelletsRemaining--;
+
+        score+=
+            50*
+            multiplier();
+
+        powerMode=
+            Math.max(
+                4000,
+                7000-level*250
+            );
+
+        ghostCombo=0;
+
+
+        ghosts.forEach(
+            g=>{
+                if(!g.eaten)
+                    g.frightened=true;
+            }
+        );
+
+
+        powerPelletSound();
+
+    }
+
+
+    if(
+        fruit &&
+        player.x===fruit.x &&
+        player.y===fruit.y
+    ){
+
+        score+=
+            500*
+            multiplier();
+
+        fruit=null;
+
+        fruitSound();
+
+    }
+
+
+    collectPowerup();
+
+
+    if(score>highScore){
+
+        highScore=score;
+
+        localStorage.setItem(
+            "pacmanHighScore",
+            highScore
+        );
+
+    }
+
+
+    if(
+        pelletsRemaining<=0
+    ){
+
+        gameState="levelclear";
+
+        levelClearTimer=0;
+
+        levelClearSound();
+
+    }
+
+}
+
+
+/* =========================================================
+   POWERUP COLLECTION
+========================================================= */
+
+function collectPowerup(){
+
+    for(
+        let i=activePowerups.length-1;
+        i>=0;
+        i--
+    ){
+
+        const p=
+            activePowerups[i];
+
+
+        if(p.collected)
+            continue;
+
+
+        if(
+            p.x===player.x &&
+            p.y===player.y
+        ){
+
+            p.collected=true;
+
+            p.timer=
+                powerupDuration(
+                    p.type
+                );
+
+            activatePowerup(
+                p.type
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   POWERUP DURATION
+========================================================= */
+
+function powerupDuration(type){
+
+    if(type==="speed")
+        return 6000;
+
+    if(type==="freeze")
+        return 5000;
+
+    if(type==="double")
+        return 8000;
+
+    if(type==="shield")
+        return 7000;
+
+    return 5000;
+
+}
+
+
+/* =========================================================
+   POWERUP EFFECT
+========================================================= */
+
+function activatePowerup(type){
+
+    /*
+       Remove previous instance
+       of the same effect.
+    */
+
+    activePowerups=
+        activePowerups.filter(
+            p=>
+                p.type!==type ||
+                !p.collected
+        );
+
+
+    activePowerups.push({
+
+        type:type,
+
+        collected:true,
+
+        timer:
+            powerupDuration(type)
+
+    });
+
+
+    if(type==="freeze"){
+
+        ghosts.forEach(
+            g=>{
+                if(!g.eaten)
+                    g.frightened=true;
+            }
+        );
+
+    }
+
+
+    if(type==="shield"){
+
+        player.invincible=
+            powerupDuration(type);
+
+    }
+
+
+    powerupSound(type);
+
+}
+
+
+/* =========================================================
+   POWERUP SPAWNING
+========================================================= */
+
+function updatePowerups(dt){
+
+    powerSpawnTimer-=dt;
+
+
+    if(
+        powerSpawnTimer<=0 &&
+        activePowerups.filter(
+            p=>!p.collected
+        ).length<2
+    ){
+
+        spawnPowerup();
+
+        powerSpawnTimer=
+            9000+
+            Math.random()*7000;
+
+    }
+
+
+    for(
+        let i=activePowerups.length-1;
+        i>=0;
+        i--
+    ){
+
+        const p=
+            activePowerups[i];
+
+
+        if(p.collected){
+
+            p.timer-=dt;
+
+            if(p.timer<=0){
+
+                activePowerups.splice(
+                    i,
+                    1
+                );
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   SPAWN POWERUP
+========================================================= */
+
+function spawnPowerup(){
+
+    const types=[
+        "speed",
+        "freeze",
+        "double",
+        "shield"
+    ];
+
+
+    let x;
+
+    let y;
+
+
+    let attempts=0;
+
+
+    do{
+
+        x=
+            1+
+            Math.floor(
+                Math.random()*
+                (COLS-2)
+            );
+
+
+        y=
+            1+
+            Math.floor(
+                Math.random()*
+                (ROWS-2)
+            );
+
+
+        attempts++;
+
+    }
+    while(
+        wall(x,y) &&
+        attempts<100
+    );
+
+
+    if(wall(x,y))
+        return;
+
+
+    activePowerups.push({
+
+        x:x,
+
+        y:y,
+
+        type:
+            types[
+                Math.floor(
+                    Math.random()*
+                    types.length
+                )
+            ],
+
+        collected:false,
+
+        pulse:0
+
+    });
+
+}
+
+
+/* =========================================================
+   GHOST UPDATE
+========================================================= */
+
+function ghostSpeed(){
+
+    /*
+       Intentionally much slower than
+       the previous version.
+    */
+
+    return Math.max(
+        250-level*6,
+        175
+    );
+
+}
+
+
+function updateGhosts(dt){
+
+    powerMode-=dt;
+
+
+    if(powerMode<=0){
+
+        ghosts.forEach(
+            g=>{
+                if(!g.eaten)
+                    g.frightened=false;
+            }
+        );
+
+    }
+
+
+    const frozen=
+        activePowerups.some(
+            p=>
+                p.collected &&
+                p.type==="freeze"
+        );
+
+
+    if(frozen)
+        return;
+
+
+    ghosts.forEach(
+        g=>{
+
+            if(g.release>0){
+
+                g.release-=dt;
+
+                return;
+
+            }
+
+
+            g.moveTimer+=dt;
+
+
+            if(
+                g.moveTimer<
+                ghostSpeed()
+            )
+                return;
+
+
+            g.moveTimer=0;
+
+
+            const choices=
+                ALL_DIRS.filter(
+                    d=>
+                        canMove(
+                            g.x,
+                            g.y,
+                            d
+                        )
+                );
+
+
+            if(!choices.length)
+                return;
+
+
+            let valid=
+                choices.filter(
+                    d=>
+                        !(
+                            d.x===-g.dir.x &&
+                            d.y===-g.dir.y
+                        )
+                );
+
+
+            if(!valid.length)
+                valid=choices;
+
+
+            let chosen;
+
+
+            if(g.frightened){
+
+                chosen=
+                    valid[
+                        Math.floor(
+                            Math.random()*
+                            valid.length
+                        )
+                    ];
+
+            }
+
+            else{
+
+                chosen=
+                    ghostDirection(
+                        g,
+                        valid
+                    );
+
+            }
+
+
+            g.dir=chosen;
+
+
+            g.x+=g.dir.x;
+
+            g.y+=g.dir.y;
+
+
+            if(g.x<0)
+                g.x=COLS-1;
+
+            if(g.x>=COLS)
+                g.x=0;
+
+
+            if(
+                g.eaten &&
+                g.x===g.homeX &&
+                g.y===g.homeY
+            ){
+
+                g.eaten=false;
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   GHOST AI
+========================================================= */
+
+function ghostDirection(g,choices){
+
+    let targetX=
+        player.x;
+
+    let targetY=
+        player.y;
+
+
+    /*
+       Different personalities.
+    */
+
+    if(g.personality===1){
+
+        targetX+=
+            player.dir.x*3;
+
+        targetY+=
+            player.dir.y*3;
+
+    }
+
+
+    if(
+        g.personality===2 &&
+        Math.random()<.35
+    ){
+
+        return choices[
+            Math.floor(
+                Math.random()*
+                choices.length
+            )
+        ];
+
+    }
+
+
+    let best=
+        choices[0];
+
+    let bestDistance=
+        Infinity;
+
+
+    choices.forEach(
+        d=>{
+
+            const nx=
+                g.x+d.x;
+
+            const ny=
+                g.y+d.y;
+
+
+            const distance=
+                Math.abs(
+                    targetX-nx
+                )+
+                Math.abs(
+                    targetY-ny
+                );
+
+
+            if(
+                distance<
+                bestDistance
+            ){
+
+                bestDistance=
+                    distance;
+
+                best=d;
+
+            }
+
+        }
+    );
+
+
+    return best;
+
+}
+
+
+/* =========================================================
+   COLLISION
+========================================================= */
+
+function collisions(){
+
+    if(
+        !player ||
+        !player.alive
+    )
+        return;
+
+
+    ghosts.forEach(
+        g=>{
+
+            if(
+                g.x!==player.x ||
+                g.y!==player.y
+            )
+                return;
+
+
+            if(
+                g.frightened &&
+                !g.eaten
+            ){
+
+                g.eaten=true;
+
+                g.frightened=false;
+
+                ghostCombo++;
+
+
+                score+=
+                    200*
+                    Math.pow(
+                        2,
+                        ghostCombo-1
+                    )*
+                    multiplier();
+
+
+                ghostEatSound();
+
+            }
+
+
+            else if(
+                !g.eaten &&
+                player.invincible<=0
+            ){
+
+                die();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   PLAYER DEATH
+========================================================= */
+
+function die(){
+
+    if(!player.alive)
+        return;
+
+
+    player.alive=false;
+
+    lives--;
+
+    gameState="dying";
+
+    deathTimer=0;
+
+    deathSound();
+
+}
+
+
+/* =========================================================
+   DEATH UPDATE
+========================================================= */
+
+function updateDeath(dt){
+
+    deathTimer+=dt;
+
+
+    if(
+        deathTimer>=1900
+    ){
+
+        if(lives<=0){
+
+            gameState="gameover";
+
+            gameOverTimer=0;
+
+        }
+
+        else{
+
+            player=
+                makePlayer();
+
+            makeGhosts();
+
+            gameState="playing";
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   LEVEL CLEAR
+========================================================= */
+
+function updateLevelClear(dt){
+
+    levelClearTimer+=dt;
+
+
+    if(
+        levelClearTimer>1600
+    ){
+
+        level++;
+
+        resetMap();
+
+        player=
+            makePlayer();
+
+        makeGhosts();
+
+        powerMode=0;
+
+        activePowerups=[];
+
+        powerSpawnTimer=7000;
+
+        gameState="playing";
+
+    }
+
+}
+
+
+/* =========================================================
+   FRUIT
+========================================================= */
+
+function updateFruit(dt){
+
+    if(!fruit){
+
+        fruitTimer-=dt;
+
+
+        if(
+            fruitTimer<=0 &&
+            pelletsRemaining<120
+        ){
+
+            if(
+                Math.random()<.002
+            ){
+
+                fruit={
+
+                    x:10,
+
+                    y:13
+
+                };
+
+                fruitTimer=9000;
+
+            }
+
+        }
+
+    }
+
+    else{
+
+        fruitTimer-=dt;
+
+
+        if(fruitTimer<=0){
+
+            fruit=null;
+
+            fruitTimer=7000;
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   MAIN UPDATE
+========================================================= */
+
+function update(dt){
+
+    if(
+        gameState==="playing"
+    ){
+
+        updatePlayer(dt);
+
+        updateGhosts(dt);
+
+        collisions();
+
+        updatePowerups(dt);
+
+        updateFruit(dt);
+
+    }
+
+
+    else if(
+        gameState==="dying"
+    ){
+
+        updateDeath(dt);
+
+    }
+
+
+    else if(
+        gameState==="levelclear"
+    ){
+
+        updateLevelClear(dt);
+
+    }
+
+
+    else if(
+        gameState==="gameover"
+    ){
+
+        gameOverTimer+=dt;
+
+    }
+
+}
+
+
+/* =========================================================
+   DRAW MAZE
+========================================================= */
+
+function drawMaze(){
+
+    for(
+        let y=0;
+        y<ROWS;
+        y++
+    ){
+
+        for(
+            let x=0;
+            x<COLS;
+            x++
+        ){
+
+            const tile=
+                map[y][x];
+
+
+            if(tile==="#"){
+
+                ctx.fillStyle="#000";
+
+                ctx.fillRect(
+                    x*TILE,
+                    y*TILE,
+                    TILE,
+                    TILE
+                );
+
+
+                ctx.strokeStyle=
+                    "#163cff";
+
+                ctx.lineWidth=2;
+
+
+                ctx.strokeRect(
+                    x*TILE+3,
+                    y*TILE+3,
+                    TILE-6,
+                    TILE-6
+                );
+
+            }
+
+
+            if(tile==="."){
+
+                ctx.fillStyle=
+                    "#fff5b0";
+
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    x*TILE+16,
+                    y*TILE+16,
+                    3,
+                    0,
+                    Math.PI*2
+                );
+
+                ctx.fill();
+
+            }
+
+
+            if(tile==="o"){
+
+                const pulse=
+                    7+
+                    Math.sin(
+                        performance.now()/
+                        130
+                    )*2;
+
+
+                ctx.fillStyle="#fff";
+
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    x*TILE+16,
+                    y*TILE+16,
+                    pulse,
+                    0,
+                    Math.PI*2
+                );
+
+                ctx.fill();
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   DRAW PAC-MAN
+========================================================= */
+
+function drawPacman(){
+
+    if(!player)
+        return;
+
+
+    const cx=
+        player.x*TILE+16;
+
+    const cy=
+        player.y*TILE+16;
+
+
+    if(
+        gameState==="dying"
+    ){
+
+        drawDeathPacman(
+            cx,
+            cy
+        );
+
+        return;
+
+    }
+
+
+    if(!player.alive)
+        return;
+
+
+    let angle=0;
+
+
+    if(player.dir===DIR.RIGHT)
+        angle=0;
+
+    if(player.dir===DIR.DOWN)
+        angle=Math.PI/2;
+
+    if(player.dir===DIR.LEFT)
+        angle=Math.PI;
+
+    if(player.dir===DIR.UP)
+        angle=-Math.PI/2;
+
+
+    const mouth=
+        .06+
+        Math.abs(
+            Math.sin(
+                player.mouth
+            )
+        )*.35;
+
+
+    /*
+       SHIELD
+    */
+
+    if(
+        player.invincible>0
+    ){
+
+        ctx.strokeStyle="#00ffff";
+
+        ctx.lineWidth=2;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            cx,
+            cy,
+            18,
+            0,
+            Math.PI*2
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    /*
+       BODY
+    */
+
+    ctx.fillStyle="#ffe600";
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        cx,
+        cy
+    );
+
+
+    ctx.arc(
+        cx,
+        cy,
+        13,
+        angle+mouth,
+        angle+
+        Math.PI*2-
+        mouth
+    );
+
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    /*
+       EYE
+    */
+
+    let eyeX=4;
+
+    let eyeY=-6;
+
+
+    if(player.dir===DIR.LEFT){
+
+        eyeX=-4;
+
+        eyeY=-6;
+
+    }
+
+
+    if(player.dir===DIR.RIGHT){
+
+        eyeX=4;
+
+        eyeY=-6;
+
+    }
+
+
+    if(player.dir===DIR.UP){
+
+        eyeX=4;
+
+        eyeY=-6;
+
+    }
+
+
+    if(player.dir===DIR.DOWN){
+
+        eyeX=4;
+
+        eyeY=-4;
+
+    }
+
+
+    ctx.fillStyle="#111";
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+        cx+eyeX,
+        cy+eyeY,
+        2.5,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+}
+
+
+/* =========================================================
+   DEATH ANIMATION
+========================================================= */
+
+function drawDeathPacman(cx,cy){
+
+    if(deathTimer<100)
+        return;
+
+
+    const progress=
+        Math.min(
+            (deathTimer-100)/
+            1600,
+            1
+        );
+
+
+    const mouth=
+        progress*
+        Math.PI;
+
+
+    ctx.fillStyle="#ffe600";
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        cx,
+        cy
+    );
+
+
+    ctx.arc(
+        cx,
+        cy,
+        13,
+        -Math.PI/2+
+            mouth/2,
+
+        -Math.PI/2+
+            Math.PI*2-
+            mouth/2
+    );
+
+
+    ctx.closePath();
+
+    ctx.fill();
+
+}
+
+
+/* =========================================================
+   DRAW GHOSTS
+========================================================= */
+
+function drawGhosts(){
+
+    ghosts.forEach(
+        g=>{
+
+            const cx=
+                g.x*TILE+16;
+
+            const cy=
+                g.y*TILE+16;
+
+
+            if(g.eaten){
+
+                drawEyes(
+                    cx,
+                    cy,
+                    g.dir
+                );
+
+                return;
+
+            }
+
+
+            let color=
+                g.color;
+
+
+            if(g.frightened){
+
+                const flashing=
+                    powerMode<1500 &&
+                    Math.floor(
+                        performance.now()/130
+                    )%2===0;
+
+
+                color=
+                    flashing
+                    ?"white"
+                    :"#174cff";
+
+            }
+
+
+            ctx.fillStyle=color;
+
+
+            ctx.beginPath();
+
+
+            ctx.arc(
+                cx,
+                cy-2,
+                13,
+                Math.PI,
+                0
+            );
+
+
+            ctx.lineTo(
+                cx+13,
+                cy+10
+            );
+
+
+            ctx.lineTo(
+                cx+8,
+                cy+7
+            );
+
+
+            ctx.lineTo(
+                cx+3,
+                cy+11
+            );
+
+
+            ctx.lineTo(
+                cx-2,
+                cy+7
+            );
+
+
+            ctx.lineTo(
+                cx-8,
+                cy+11
+            );
+
+
+            ctx.lineTo(
+                cx-13,
+                cy+7
+            );
+
+
+            ctx.closePath();
+
+            ctx.fill();
+
+
+            drawEyes(
+                cx,
+                cy,
+                g.dir
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   GHOST EYES
+========================================================= */
+
+function drawEyes(cx,cy,dir){
+
+    ctx.fillStyle="#fff";
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+        cx-5,
+        cy-4,
+        4,
+        0,
+        Math.PI*2
+    );
+
+    ctx.arc(
+        cx+5,
+        cy-4,
+        4,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    let px=0;
+
+    let py=0;
+
+
+    if(dir===DIR.LEFT)
+        px=-2;
+
+    if(dir===DIR.RIGHT)
+        px=2;
+
+    if(dir===DIR.UP)
+        py=-2;
+
+    if(dir===DIR.DOWN)
+        py=2;
+
+
+    ctx.fillStyle="#111";
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+        cx-5+px,
+        cy-4+py,
+        2,
+        0,
+        Math.PI*2
+    );
+
+    ctx.arc(
+        cx+5+px,
+        cy-4+py,
+        2,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+}
+
+
+/* =========================================================
+   POWERUPS
+========================================================= */
+
+function drawPowerups(){
+
+    activePowerups.forEach(
+        p=>{
+
+            if(p.collected)
+                return;
+
+
+            const cx=
+                p.x*TILE+16;
+
+            const cy=
+                p.y*TILE+16;
+
+
+            const pulse=
+                10+
+                Math.sin(
+                    performance.now()/150
+                )*2;
+
+
+            ctx.strokeStyle="#fff";
+
+            ctx.lineWidth=2;
+
+
+            ctx.beginPath();
+
+            ctx.arc(
+                cx,
+                cy,
+                pulse,
+                0,
+                Math.PI*2
+            );
+
+            ctx.stroke();
+
+
+            ctx.fillStyle="#fff";
+
+
+            let symbol="?";
+
+
+            if(p.type==="speed")
+                symbol="⚡";
+
+            if(p.type==="freeze")
+                symbol="❄";
+
+            if(p.type==="double")
+                symbol="2X";
+
+            if(p.type==="shield")
+                symbol="◆";
+
+
+            ctx.font=
+                "8px 'Press Start 2P'";
+
+
+            ctx.textAlign="center";
+
+
+            ctx.fillText(
+                symbol,
+                cx,
+                cy+3
+            );
+
+
+            ctx.textAlign="left";
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   FRUIT
+========================================================= */
+
+function drawFruit(){
+
+    if(!fruit)
+        return;
+
+
+    const cx=
+        fruit.x*TILE+16;
+
+    const cy=
+        fruit.y*TILE+16;
+
+
+    ctx.fillStyle="#ff2020";
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+        cx-5,
+        cy+3,
+        6,
+        0,
+        Math.PI*2
+    );
+
+    ctx.arc(
+        cx+5,
+        cy+3,
+        6,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    ctx.strokeStyle="#50d050";
+
+    ctx.lineWidth=2;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        cx,
+        cy-1
+    );
+
+    ctx.lineTo(
+        cx+4,
+        cy-10
+    );
+
+    ctx.stroke();
+
+}
+
+
+/* =========================================================
+   HUD
+========================================================= */
+
+function drawHUD(){
+
+    const y=
+        ROWS*TILE;
+
+
+    ctx.fillStyle="#000";
+
+
+    ctx.fillRect(
+        0,
+        y,
+        canvas.width,
+        HUD*TILE
+    );
+
+
+    ctx.font=
+        "9px 'Press Start 2P'";
+
+
+    ctx.fillStyle="#fff";
+
+
+    ctx.fillText(
+        "1UP",
+        18,
+        y+13
+    );
+
+
+    ctx.fillStyle="#ffe600";
+
+
+    ctx.fillText(
+        String(score)
+            .padStart(6,"0"),
+        18,
+        y+28
+    );
+
+
+    ctx.fillStyle="#fff";
+
+
+    ctx.fillText(
+        "HIGH SCORE",
+        245,
+        y+13
+    );
+
+
+    ctx.fillStyle="#00ffff";
+
+
+    ctx.fillText(
+        String(highScore)
+            .padStart(6,"0"),
+        245,
+        y+28
+    );
+
+
+    ctx.fillStyle="#fff";
+
+
+    ctx.fillText(
+        "LEVEL "+level,
+        510,
+        y+13
+    );
+
+
+    /*
+       LIVES
+    */
+
+    for(
+        let i=0;
+        i<lives;
+        i++
+    ){
+
+        drawMiniPacman(
+            20+i*23,
+            y+52
+        );
+
+    }
+
+
+    /*
+       ACTIVE POWERUPS
+    */
+
+    let px=245;
+
+
+    activePowerups.forEach(
+        p=>{
+
+            if(!p.collected)
+                return;
+
+
+            let symbol="?";
+
+
+            if(p.type==="speed")
+                symbol="⚡";
+
+            if(p.type==="freeze")
+                symbol="❄";
+
+            if(p.type==="double")
+                symbol="2X";
+
+            if(p.type==="shield")
+                symbol="◆";
+
+
+            ctx.fillStyle="#fff";
+
+            ctx.font=
+                "7px 'Press Start 2P'";
+
+
+            ctx.fillText(
+                symbol+
+                " "+
+                Math.ceil(
+                    p.timer/1000
+                ),
+                px,
+                y+53
+            );
+
+
+            px+=65;
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   MINI PACMAN
+========================================================= */
+
+function drawMiniPacman(x,y){
+
+    ctx.fillStyle="#ffe600";
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        x,
+        y
+    );
+
+
+    ctx.arc(
+        x,
+        y,
+        8,
+        .35,
+        Math.PI*2-.35
+    );
+
+
+    ctx.closePath();
+
+    ctx.fill();
+
+}
+
+
+/* =========================================================
+   PAUSE SCREEN
+========================================================= */
+
+function drawPause(){
+
+    ctx.fillStyle=
+        "rgba(0,0,0,.75)";
+
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        ROWS*TILE
+    );
+
+
+    ctx.textAlign="center";
+
+
+    ctx.fillStyle="#fff";
+
+    ctx.font=
+        "20px 'Press Start 2P'";
+
+
+    ctx.fillText(
+        "PAUSED",
+        canvas.width/2,
+        320
+    );
+
+
+    ctx.font=
+        "7px 'Press Start 2P'";
+
+
+    ctx.fillStyle="#777";
+
+
+    ctx.fillText(
+        "PRESS P TO RESUME",
+        canvas.width/2,
+        355
+    );
+
+
+    ctx.textAlign="left";
+
+}
+
+
+/* =========================================================
+   LEVEL CLEAR
+========================================================= */
+
+function drawLevelClear(){
+
+    ctx.fillStyle=
+        "rgba(0,0,0,.72)";
+
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        ROWS*TILE
+    );
+
+
+    ctx.textAlign="center";
+
+
+    ctx.fillStyle="#ffe600";
+
+    ctx.font=
+        "18px 'Press Start 2P'";
+
+
+    ctx.fillText(
+        "LEVEL CLEAR!",
+        canvas.width/2,
+        320
+    );
+
+
+    ctx.fillStyle="#fff";
+
+    ctx.font=
+        "8px 'Press Start 2P'";
+
+
+    ctx.fillText(
+        "GET READY...",
+        canvas.width/2,
+        355
+    );
+
+
+    ctx.textAlign="left";
+
+}
+
+
+/* =========================================================
+   GAME OVER
+========================================================= */
+
+function drawGameOver(){
+
+    /*
+       Flickering arcade blackout
+    */
+
+    if(
+        gameOverTimer<1000
+    ){
+
+        if(
+            Math.floor(
+                gameOverTimer/120
+            )%2===0
+        ){
+
+            ctx.fillStyle="#111";
+
+
+            ctx.fillRect(
+                0,
+                0,
+                canvas.width,
+                ROWS*TILE
+            );
+
+        }
+
+        return;
+
+    }
+
+
+    ctx.fillStyle=
+        "rgba(0,0,0,.82)";
+
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        ROWS*TILE
+    );
+
+
+    ctx.textAlign="center";
+
+
+    ctx.fillStyle="#fff";
+
+    ctx.font=
+        "22px 'Press Start 2P'";
+
+
+    ctx.fillText(
+        "GAME OVER",
+        canvas.width/2,
+        315
+    );
+
+
+    ctx.fillStyle="#ffe600";
+
+    ctx.font=
+        "8px 'Press Start 2P'";
+
+
+    ctx.fillText(
+        "SCORE",
+        canvas.width/2,
+        355
+    );
+
+
+    ctx.fillStyle="#fff";
+
+    ctx.fillText(
+        String(score)
+            .padStart(6,"0"),
+        canvas.width/2,
+        380
+    );
+
+
+    if(
+        gameOverTimer>2400
+    ){
+
+        ctx.fillStyle="#777";
+
+        ctx.font=
+            "7px 'Press Start 2P'";
+
+
+        ctx.fillText(
+            "PRESS SPACE TO PLAY AGAIN",
+            canvas.width/2,
+            430
+        );
+
+    }
+
+
+    ctx.textAlign="left";
+
+}
+
+
+/* =========================================================
+   DRAW
+========================================================= */
+
+function draw(){
+
+    ctx.fillStyle="#000";
+
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    drawMaze();
+
+    drawPowerups();
+
+    drawFruit();
+
+    drawGhosts();
+
+    drawPacman();
+
+    drawHUD();
+
+
+    if(
+        gameState==="paused"
+    ){
+
+        drawPause();
+
+    }
+
+
+    if(
+        gameState==="levelclear"
+    ){
+
+        drawLevelClear();
+
+    }
+
+
+    if(
+        gameState==="gameover"
+    ){
+
+        drawGameOver();
+
+    }
+
+}
+
+
+/* =========================================================
+   AUDIO
+========================================================= */
+
+let audioContext=null;
+
+
+function getAudio(){
+
+    if(!audioContext){
+
+        audioContext=
+            new(
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+    }
+
+
+    if(
+        audioContext.state==="suspended"
+    ){
+
+        audioContext.resume();
+
+    }
+
+
+    return audioContext;
+
+}
+
+
+/* =========================================================
+   BASIC SOUND
+========================================================= */
+
+function simpleBeep(
+    frequency,
+    duration,
+    volume=.04,
+    type="square"
+){
+
+    try{
+
+        const audio=
+            getAudio();
+
+
+        const oscillator=
+            audio.createOscillator();
+
+        const gain=
+            audio.createGain();
+
+
+        oscillator.type=
+            type;
+
+
+        oscillator.frequency.setValueAtTime(
+            frequency,
+            audio.currentTime
+        );
+
+
+        gain.gain.setValueAtTime(
+            volume,
+            audio.currentTime
+        );
+
+
+        gain.gain.exponentialRampToValueAtTime(
+            .001,
+            audio.currentTime+
+            duration
+        );
+
+
+        oscillator.connect(gain);
+
+        gain.connect(
+            audio.destination
+        );
+
+
+        oscillator.start();
+
+        oscillator.stop(
+            audio.currentTime+
+            duration
+        );
+
+    }
+
+    catch(error){
+
+        /*
+           Audio is optional.
+           The game still works if
+           the browser blocks it.
+        */
+
+    }
+
+}
+
+
+/* =========================================================
+   PAC-MAN WAKA-WAKA
+========================================================= */
+
+function waka(){
+
+    wakaToggle=
+        !wakaToggle;
+
+
+    /*
+       Extremely short alternating
+       square-wave notes to give the
+       classic arcade eating rhythm.
+    */
+
+    if(wakaToggle){
+
+        simpleBeep(
+            390,
+            .045,
+            .035,
+            "square"
+        );
+
+    }
+
+    else{
+
+        simpleBeep(
+            300,
+            .045,
+            .035,
+            "square"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   START SOUND
+========================================================= */
+
+function startGameSound(){
+
+    const notes=[
+        523,
+        659,
+        784,
+        1047
+    ];
+
+
+    notes.forEach(
+        (note,i)=>{
+
+            setTimeout(
+                ()=>{
+
+                    simpleBeep(
+                        note,
+                        .11,
+                        .035,
+                        "square"
+                    );
+
+                },
+                i*80
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   POWER PELLET SOUND
+========================================================= */
+
+function powerPelletSound(){
+
+    simpleBeep(
+        180,
+        .08,
+        .045
+    );
+
+
+    setTimeout(
+        ()=>{
+
+            simpleBeep(
+                260,
+                .08,
+                .04
+            );
+
+        },
+        75
+    );
+
+
+    setTimeout(
+        ()=>{
+
+            simpleBeep(
+                370,
+                .12,
+                .04
+            );
+
+        },
+        150
+    );
+
+}
+
+
+/* =========================================================
+   POWERUP SOUND
+========================================================= */
+
+function powerupSound(type){
+
+    const frequencies={
+
+        speed:520,
+
+        freeze:320,
+
+        double:720,
+
+        shield:900
+
+    };
+
+
+    const base=
+        frequencies[type]||500;
+
+
+    simpleBeep(
+        base,
+        .08,
+        .045
+    );
+
+
+    setTimeout(
+        ()=>{
+
+            simpleBeep(
+                base*1.4,
+                .11,
+                .04
+            );
+
+        },
+        75
+    );
+
+}
+
+
+/* =========================================================
+   GHOST EAT
+========================================================= */
+
+function ghostEatSound(){
+
+    simpleBeep(
+        900,
+        .055,
+        .05
+    );
+
+
+    setTimeout(
+        ()=>{
+
+            simpleBeep(
+                1200,
+                .075,
+                .045
+            );
+
+        },
+        55
+    );
+
+}
+
+
+/* =========================================================
+   FRUIT SOUND
+========================================================= */
+
+function fruitSound(){
+
+    const notes=[
+        600,
+        800,
+        1000,
+        1300
+    ];
+
+
+    notes.forEach(
+        (note,i)=>{
+
+            setTimeout(
+                ()=>{
+
+                    simpleBeep(
+                        note,
+                        .07,
+                        .04
+                    );
+
+                },
+                i*60
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   DEATH SOUND
+========================================================= */
+
+function deathSound(){
+
+    const notes=[
+        500,
+        470,
+        430,
+        380,
+        330,
+        280,
+        220,
+        170
+    ];
+
+
+    notes.forEach(
+        (note,i)=>{
+
+            setTimeout(
+                ()=>{
+
+                    simpleBeep(
+                        note,
+                        .13,
+                        .045
+                    );
+
+                },
+                i*105
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   LEVEL CLEAR SOUND
+========================================================= */
+
+function levelClearSound(){
+
+    const notes=[
+        523,
+        659,
+        784,
+        1047
+    ];
+
+
+    notes.forEach(
+        (note,i)=>{
+
+            setTimeout(
+                ()=>{
+
+                    simpleBeep(
+                        note,
+                        .12,
+                        .045
+                    );
+
+                },
+                i*100
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+resetMap();
+
+player=
+    makePlayer();
+
+makeGhosts();
+
+
+/* =========================================================
+   LOADING SCREEN TIMING
+========================================================= */
+
+setTimeout(
+    ()=>{
+
+        const loading=
+            document.getElementById(
+                "loadingScreen"
+            );
+
+
+        loading.style.opacity="0";
+
+
+        setTimeout(
+            ()=>{
+
+                loading.remove();
+
+            },
+            600
+        );
+
+    },
+    2500
+);
+
+
+/* =========================================================
+   GAME LOOP
+========================================================= */
+
+function gameLoop(timestamp){
+
+    if(!lastTime)
+        lastTime=timestamp;
+
+
+    const dt=
+        Math.min(
+            timestamp-lastTime,
+            100
+        );
+
+
+    lastTime=timestamp;
+
+
+    update(dt);
+
+    draw();
+
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+
+requestAnimationFrame(
+    gameLoop
+);
+
+</script>
+
+</body>
+</html>
